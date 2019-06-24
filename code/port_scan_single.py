@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# author:@Zero
+# author:Y4er
 
 # 导入网络模块
 import socket
@@ -18,29 +18,26 @@ def banner():
 |  __/ (_) | |  | |_ ___) | (_| (_| | | | |
 |_|   \___/|_|   \__|____/ \___\__,_|_| |_|
 
-Have fun.''')
+Have fun. Author:Y4er''')
 
 # 连接成功则端口打开，连接失败则端口关闭
 def portscan(ip, port, timeout):
-    file = open("../output/out.txt", "a")
     try:
         socket.setdefaulttimeout(timeout)
         s = socket.socket()
         s.connect((ip, port))
         print('[+] {} is open.'.format(port))
-        file.write('{}:{}\n'.format(ip, port))
         s.close()
     except:
         print('[-] {} is close.'.format(port))
     finally:
-        file.close()
         pass
 
 # 继承自Thread的MyThread类
 class MyThread(threading.Thread):
     """docstring for MyThread"""
 
-    def __init__(self, host, port, timeout=3.0):
+    def __init__(self, host, port, timeout):
         super().__init__()
         self.host = host
         self.port = port
@@ -58,19 +55,26 @@ if __name__ == '__main__':
 
     # 获取命令行参数
     parser = argparse.ArgumentParser(usage=banner())
-    parser.add_argument('-u', help='target host', dest='host', required=False)
-    parser.add_argument('-r', help='target host dir', dest='dir', required=False)
-    parser.add_argument('-t', help='timeout', dest='timeout', type=int, required=False)
+    parser.add_argument('-a', help='target host', dest='host', required=True)
+    parser.add_argument('-t', help='timeout', dest='timeout', type=int, required=True)
+    parser.add_argument('-p', help='target port', dest='port', required=False)
     args = parser.parse_args()
+    threads = []
 
-    if args.dir:
-        for line in open(args.dir):
-            line = line.replace("\n", "")
-            threads = []
-            for port in def_ports:
-                t = MyThread(line, port)
+    # 如果给定的检测端口号为范围
+    if args.port:
+        if '-' in args.port:
+            limits = args.port.split('-')
+            limits = list(map(int, limits))
+            # 创建相应数量的线程
+            for port in range(limits[0], limits[1] + 1):
+                t = MyThread(args.host, port, args.timeout)
                 threads.append(t)
-            for t in threads:
-                t.start()
-            for t in threads:
-                t.join()
+    else:
+        for port in def_ports:
+            t = MyThread(args.host, port, args.timeout)
+            threads.append(t)
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
